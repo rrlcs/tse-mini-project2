@@ -131,6 +131,9 @@ for epoch in range(epochs):
                 'optimizer': optimizer.state_dict()
                 }
             save_checkpoint(checkpoint)
+            f = open("losslist_"+str(i), "a")
+            f.write(str(loss_list))
+            f.close
         loss.backward()
         # Gradient Clipping
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=40)
