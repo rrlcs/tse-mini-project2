@@ -5,21 +5,24 @@ import torch.optim as optim
 import json
 import time
 import math
+import re
 import numpy as np
-# from data import JsonDataset
-# from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import StepLR
+
 
 epochs = 10
-learning_rate = 1e-4
+learning_rate = 1e-5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+training_size = 25920
 
 criterion = nn.MSELoss()
 optimizer = optim.Adam(
     model.parameters(),
     lr=learning_rate,
-    weight_decay=1e-15
+    weight_decay=9e-5
     )
+
+scheduler = StepLR(optimizer, step_size=1, gamma=0.1)
 
 # Grammar Rules Dictionary
 grammar_rules = dict(
@@ -85,10 +88,11 @@ def save_checkpoint(state, filename="my_checkpoint.path.ptor"):
 model.train()
 start = time.time()
 print_loss_total = 0
+# print_loss_total_epoch = 0
 loss_list_epoch = []
 for epoch in range(epochs):
     loss_list = []
-    for i in range(1, 40000):
+    for i in range(1, training_size+1):
         # Extract data elements from the training data
         feature_matrix_for_ast_nodes = training_data[i].get('featureMatrix')
         num_of_nodes = training_data[i].get('num_of_nodes')
@@ -117,9 +121,13 @@ for epoch in range(epochs):
         output = output.squeeze(0).permute(1, 0)
         loss = criterion(output, rules_used)
         print_loss_total += loss
+        # print_loss_total_epoch += loss
         if i % 500 == 0:
             print_loss_avg = print_loss_total / 500
             loss_list.append(print_loss_avg)
+            f1 = open("sum_lossess_every_500", "a")
+            f1.write(str(print_loss_total))
+            f1.close
             print_loss_total = 0
             print("loss: ", loss, "iteration: ", i)
             print('%s (%d %d%%) %.4f' % (timeSince(
@@ -131,11 +139,27 @@ for epoch in range(epochs):
                 'optimizer': optimizer.state_dict()
                 }
             save_checkpoint(checkpoint)
-            f = open("losslist_"+str(i), "a")
-            f.write(str(loss_list))
-            f.close
+            f1 = open("lossess", "a")
+            f1.write(str(loss_list))
+            f1.close
+            loss_list = []
         loss.backward()
         # Gradient Clipping
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=40)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=20)
         optimizer.step()
-    loss_list_epoch.append(sum(loss_list))
+    scheduler.step()
+    print('Epoch-{0} lr: {1}'.format(epoch, optimizer.param_groups[0]['lr']))
+    # print(print_loss_total_epoch / training_size)
+    with open("sum_lossess_every_500", "r") as f:
+        data = f.read()
+    data = re.findall("\d+\.\d+", data)
+    data = np.array(list(map(float, data)))
+    print(data.sum())
+    loss_list_epoch = data.sum()
+    loss_list_epoch = loss_list_epoch / training_size
+    # loss_list_epoch.append(print_loss_total_epoch / training_size)
+    # print_loss_total_epoch = 0
+    f2 = open("lossess_per_epoch", "a")
+    f2.write(str(loss_list_epoch)+",")
+    f2.close
+    loss_list_epoch = []

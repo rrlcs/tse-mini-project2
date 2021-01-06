@@ -30,8 +30,8 @@ class AdjacencyList:
 class GGNN_Encoder(nn.Module):
     def __init__(self, hidden_size, num_edge_types, layer_timesteps,
                  residual_connections,
-                 state_to_message_dropout=0.3,
-                 rnn_dropout=0.3,
+                 state_to_message_dropout=0.5,
+                 rnn_dropout=0.6,
                  use_bias_for_message_linear=True):
 
         super(GGNN_Encoder, self).__init__()
