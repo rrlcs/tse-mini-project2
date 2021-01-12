@@ -28,32 +28,34 @@ class AdjacencyList:
 
 
 class GGNN_Encoder(nn.Module):
-    def __init__(self, hidden_size, num_edge_types, layer_timesteps,
-                 residual_connections,
-                 state_to_message_dropout=0.5,
-                 rnn_dropout=0.6,
-                 use_bias_for_message_linear=True):
+    def __init__(
+        self,
+        hidden_size,
+        num_edge_types,
+        layer_timesteps,
+        state_to_message_dropout=0.8,
+        rnn_dropout=0.8,
+        use_bias_for_message_linear=True
+    ):
 
         super(GGNN_Encoder, self).__init__()
 
         self.hidden_size = hidden_size
         self.num_edge_types = num_edge_types
         self.layer_timesteps = layer_timesteps
-        self.residual_connections = residual_connections
         self.state_to_message_dropout = state_to_message_dropout
         self.rnn_dropout = rnn_dropout
         self.use_bias_for_message_linear = use_bias_for_message_linear
 
         # Prepare linear transformations from node states to messages,
-        # for each layer and each edge type
-        # Prepare rnn cells for each layer
+        # - for each layer and each edge type
         self.state_to_message_linears = []
+        # Prepare rnn cells for each layer
         self.rnn_cells = []
         for layer_idx in range(len(self.layer_timesteps)):
             state_to_msg_linears_cur_layer = []
             # Initiate a linear transformation for each edge type
             for edge_type_j in range(self.num_edge_types):
-                # TODO: glorot_init?
                 state_to_msg_linear_layer_i_type_j = nn.Linear(
                     self.hidden_size,
                     self.hidden_size,
@@ -72,28 +74,26 @@ class GGNN_Encoder(nn.Module):
                 state_to_msg_linears_cur_layer
                 )
 
-            layer_residual_connections = self.residual_connections.get(
-                layer_idx,
-                []
-                )
+            # Initiate a GRUCell for each layer
             rnn_cell_layer_i = nn.GRUCell(
-                self.hidden_size * (1 + len(layer_residual_connections)),
+                self.hidden_size,
                 self.hidden_size
                 )
-            rnn_cell_layer_i = nn.GRUCell(self.hidden_size, self.hidden_size)
             setattr(self, 'rnn_cell_layer%d' % layer_idx, rnn_cell_layer_i)
             self.rnn_cells.append(rnn_cell_layer_i)
 
+        # Dropout layer for linear transformation between nodes
         self.state_to_message_dropout_layer = nn.Dropout(
             self.state_to_message_dropout
             )
-        self.rnn_dropout_layer = nn.Dropout(self.rnn_dropout)
-
+        # Dropout layer for gru cell at each node
+        self.rnn_dropout_layer = nn.Dropout(p=0.8)
+        # Fully Connected layer for graph level embedding
         self.fc_layer = nn.Sequential(
-            nn.Linear(self.hidden_size, self.hidden_size),
-            nn.ReLU(),
             nn.Linear(self.hidden_size, self.hidden_size)
         )
+        # Dropout layer for FC layer
+        self.fc_dropout_layer = nn.Dropout(p=0.8)
 
     @property
     def device(self):
@@ -103,13 +103,15 @@ class GGNN_Encoder(nn.Module):
                 initial_node_representation: Variable,
                 adjacency_lists: List[AdjacencyList],
                 return_all_states=False) -> Variable:
-
+        # Final node representations of AST
         node_representations = self.compute_node_representations(
             initial_node_representation,
             adjacency_lists,
             return_all_states=return_all_states
             )
-        out = self.fc_layer(node_representations)
+        # Fully connected layer
+        out = self.fc_dropout_layer(self.fc_layer(node_representations))
+        # Maxpooling to get final graph level representations
         graph_repr, _ = torch.max(out, dim=0)
         return graph_repr
 
@@ -149,8 +151,6 @@ class GGNN_Encoder(nn.Module):
         message_targets = torch.cat(message_targets, dim=0)  # Shape [M]
 
         # sparse matrix of shape [V, M]
-        # incoming_msg_sparse_matrix =
-        # self.get_incoming_message_sparse_matrix(adjacency_lists).to(device)
         for layer_idx, num_timesteps in enumerate(self.layer_timesteps):
             # Used shape abbreviations:
             #   V ~ number of nodes
@@ -209,9 +209,6 @@ class GGNN_Encoder(nn.Module):
                     messages
                     )
 
-                # shape [V, D * (1 + num of residual connections)]
-                # incoming_information = torch.cat(layer_residual_states +
-                # [incoming_messages], dim=-1)
                 incoming_information = torch.cat([incoming_messages], dim=-1)
 
                 # pass updated vertex features into RNN cell
@@ -227,8 +224,10 @@ class GGNN_Encoder(nn.Module):
 
             node_states_per_layer.append(node_states_for_this_layer)
 
+        # Return node representation for each layer
         if return_all_states:
             return node_states_per_layer[1:]
+        # Return node representations for final layer
         else:
             node_states_for_last_layer = node_states_per_layer[-1]
             return node_states_for_last_layer

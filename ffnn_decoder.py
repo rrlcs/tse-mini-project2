@@ -10,19 +10,16 @@ class FF_Decoder(nn.Module):
         self.fc_in = nn.Linear(input_size, hidden_size)
         self.fc_out = nn.Linear(hidden_size, output_size)
         self.fc_hidden = nn.Linear(hidden_size, hidden_size)
-        self.dropout1 = nn.Dropout(p=0.5)
-        self.dropout2 = nn.Dropout(p=0.7)
+        self.dropout1 = nn.Dropout(p=0.8)
         self.activation = nn.Sigmoid()
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        # print("x input: ", x)
+        # input layer --> hidden layer --> relu -->
+        # dropout layer --> output layer --> sigmoid activation
         x = self.fc_in(x)
         x = self.relu(self.fc_hidden(x))
         x = self.dropout1(x)
-        x = self.relu(self.fc_hidden(x))
-        x = self.dropout2(x)
         x = self.fc_out(x)
         x = self.activation(x)
-        # print("x output: ", x)
         return x
