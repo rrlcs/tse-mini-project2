@@ -17,4 +17,4 @@ Decoder: ```ffnn_decoder.py```
 4. Evaluate the network: ```python evaluate.py```
 5. Plot the losses: ```python plot.py```
 
-#### This Project is in continuation to tse mini project 1 and is done under the course Topics in Software Engineering at Indian Institute of Science Guided by Prof. Aditya Kanade and Prof. Shirish Shevde
+#### This Project is in continuation to tse mini project 1 and is done under the course Topics in Software Engineering at Indian Institute of Science, Guided by Prof. Aditya Kanade and Prof. Shirish Shevde
