@@ -11,10 +11,10 @@ from torch.optim.lr_scheduler import StepLR
 
 
 # Set parameters for training
-epochs = 2
+epochs = 50
 learning_rate = 1e-5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-training_size = 25920
+training_size = 35456
 
 # Define criterion
 criterion = nn.MSELoss()
@@ -76,7 +76,7 @@ def timeSince(since, percent):
 
 
 # Checkpoints
-def save_checkpoint(state, filename="training_checkpoint_6.path.ptor"):
+def save_checkpoint(state, filename="training_checkpoint.path.ptor"):
     print("=> Saving Checkpoint")
     torch.save(state, filename)
 
@@ -153,7 +153,7 @@ for epoch in range(1, epochs+1):
             loss_list.append(print_loss_avg)
 
             # Store sum of losses for every 500 iterations
-            f1 = open("sum_lossess_every_500_6", "a")
+            f1 = open("sum_lossess_every_500", "a")
             f1.write(str(print_loss_total))
             f1.close
 
@@ -177,7 +177,7 @@ for epoch in range(1, epochs+1):
             save_checkpoint(checkpoint)
 
             # Store losses in the file
-            f1 = open("lossess_6", "a")
+            f1 = open("lossess", "a")
             f1.write(str(loss_list))
             f1.close
 
@@ -200,7 +200,7 @@ for epoch in range(1, epochs+1):
     print('Epoch-{0} lr: {1}'.format(epoch, optimizer.param_groups[0]['lr']))
 
     # Compute total sum of losses over complete training set
-    with open("sum_lossess_every_500_6", "r") as f:
+    with open("sum_lossess_every_500", "r") as f:
         data = f.read()
     data = re.findall("\d+\.\d+", data)
     data = np.array(list(map(float, data)))
@@ -209,7 +209,7 @@ for epoch in range(1, epochs+1):
     loss_list_epoch = data.sum() / (training_size * epoch)
 
     # Store loss per epoch in file
-    f2 = open("lossess_per_epoch_6", "a")
+    f2 = open("lossess_per_epoch", "a")
     f2.write(str(loss_list_epoch)+",")
     f2.close
     loss_list_epoch = []

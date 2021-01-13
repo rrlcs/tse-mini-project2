@@ -46,7 +46,7 @@ optimizer = optim.Adam(
 
 # Load saved checkpoint
 load_checkpoint(
-    torch.load('training_checkpoint_5.path.ptor'),
+    torch.load('training_checkpoint.path.ptor'),
     model,
     optimizer
     )
@@ -111,8 +111,8 @@ acc = 0  # Initialize accuracy with 0
 print_loss_total = 0
 loss_list_epoch = []
 loss_list = []
-start_test_index = 25921
-end_test_index = 30000
+start_test_index = 35457
+end_test_index = 44320
 with torch.no_grad():
     for i in range(start_test_index, end_test_index):
 
@@ -157,7 +157,7 @@ with torch.no_grad():
             loss_list.append(print_loss_avg)
 
             # Store the test sum of losses every 500 to a file
-            f1 = open("test_sum_lossess_every_500_5", "a")
+            f1 = open("test_sum_lossess_every_500", "a")
             f1.write(str(print_loss_total))
             f1.close
 
@@ -174,7 +174,7 @@ with torch.no_grad():
                 ), i, i / len(training_data) * 100, print_loss_avg))
 
             # Store test losses to file
-            f1 = open("test_lossess_5", "a")
+            f1 = open("test_lossess", "a")
             f1.write(str(loss_list))
             f1.close
 

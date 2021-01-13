@@ -3,11 +3,11 @@ import re
 import matplotlib.pyplot as plt
 
 # specify loss file name
-with open("lossess_6", "r") as f:
+with open("lossess", "r") as f:
     data = f.read()
 data = re.findall("\d+\.\d+", data)
 data = np.array(list(map(float, data)))
 iterations = np.array([500*i for i in range(1, data.size)])
 plt.plot(iterations, data[1:])
 # specify file name for plot image
-plt.savefig("train_lossplot_6.png")
+plt.savefig("train_lossplot.png")
