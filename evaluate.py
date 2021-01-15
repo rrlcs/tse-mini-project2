@@ -4,13 +4,15 @@ import time
 import math
 import torch.nn as nn
 import numpy as np
-from model import model
+from model import define_model, device
 import torch.optim as optim
 from sklearn.metrics import accuracy_score
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Define criterion
-criterion = nn.MSELoss()
+criterion = nn.BCELoss()
+
+# Define model
+model = define_model()
 
 
 # Time Measures
@@ -75,11 +77,13 @@ ast_node_encoding = dict(
         }
                           )
 
+start_test_index = 35000
+end_test_index = 44000
 
 # Loading Data
 with open("dataset.json", "r") as f:
     data = json.load(f)
-training_data = data.get('TrainingExamples')
+test_data = data.get('TrainingExamples')[start_test_index:end_test_index]
 
 
 # Format data in correct size and shape and type
@@ -111,16 +115,14 @@ acc = 0  # Initialize accuracy with 0
 print_loss_total = 0
 loss_list_epoch = []
 loss_list = []
-start_test_index = 35457
-end_test_index = 44320
 with torch.no_grad():
-    for i in range(start_test_index, end_test_index):
+    for i in range(1, len(test_data)):
 
         # Extract data elements from the training data
-        feature_matrix_for_ast_nodes = training_data[i].get('featureMatrix')
-        num_of_nodes = training_data[i].get('num_of_nodes')
-        edge_list = training_data[i].get('edgeList')
-        rules_used = training_data[i].get('GrammarRulesUsed')
+        feature_matrix_for_ast_nodes = test_data[i-1].get('featureMatrix')
+        num_of_nodes = test_data[i-1].get('num_of_nodes')
+        edge_list = test_data[i-1].get('edgeList')
+        rules_used = test_data[i-1].get('GrammarRulesUsed')
 
         # Get data in correct format
         feature_matrix_for_ast_nodes, edge_list_of_tuples, rules_used = format_data(
@@ -170,8 +172,8 @@ with torch.no_grad():
             # print time remaining
             print('%s (%d %d%%) %.4f' % (timeSince(
                 start,
-                i / len(training_data)
-                ), i, i / len(training_data) * 100, print_loss_avg))
+                i / len(test_data)
+                ), i, i / len(test_data) * 100, print_loss_avg))
 
             # Store test losses to file
             f1 = open("test_lossess", "a")
@@ -188,4 +190,4 @@ with torch.no_grad():
         acc += accuracy_score(rules_used, predictions)
 
     # Print the final accuracy on test data
-    print("Accuracy: ", acc / (end_test_index - start_test_index))
+    print("Accuracy: ", acc / (len(test_data)))
