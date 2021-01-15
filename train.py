@@ -1,4 +1,4 @@
-from model import model
+# from model import model
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,17 +7,21 @@ import time
 import math
 import re
 import numpy as np
+import pandas as pd
 from torch.optim.lr_scheduler import StepLR
+from model import device, define_model
 
 
 # Set parameters for training
-epochs = 50
-learning_rate = 1e-5
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-training_size = 35456
+epochs = 10
+learning_rate = 1e-6
+training_size = 35000
+
+# Define model
+model = define_model()
 
 # Define criterion
-criterion = nn.MSELoss()
+criterion = nn.BCELoss()
 
 # Define optimizer
 optimizer = optim.Adam(
@@ -57,7 +61,10 @@ ast_node_encoding = dict(
 # Loading Data
 with open("dataset.json", "r") as f:
     data = json.load(f)
-training_data = data.get('TrainingExamples')
+training_data = data.get('TrainingExamples')[:training_size]
+
+
+# training_data = all_data[:int(len(all_data)*0.8)]
 
 
 # Time Measures
@@ -109,6 +116,7 @@ start = time.time()
 print_loss_total = 0
 loss_list_epoch = []
 for epoch in range(1, epochs+1):
+    training_data = pd.DataFrame(training_data).sample(frac=1).to_dict("records")
     loss_list = []  # contains loss for each iteration
     for i in range(1, training_size+1):
 
@@ -134,13 +142,19 @@ for epoch in range(1, epochs+1):
             rules_used
             )
 
-        optimizer.zero_grad()
-
-        # Reshape output according to rules_used
+        #  Reshape output according to rules_used
         output = output.squeeze(0).permute(1, 0)
+        # predictions = torch.round(output)
+        # output = predictions
+        # rules_used = rules_used.permute(1, 0).to(dtype=torch.int64)#.unsqueeze(0)#
+        # output = output.unsqueeze(0).to(dtype=torch.int64)
+        # print(rules_used.size())
+        # print(output.size())
+        # print(predictions.size())
 
         # Calculate loss
         loss = criterion(output, rules_used)
+        # loss_list.append(loss)
 
         # Print losses and save checkpoints every 500 iterations
         print_loss_total += loss
@@ -183,7 +197,7 @@ for epoch in range(1, epochs+1):
 
             # Re-initialize the loss_list to empty
             loss_list = []
-
+        optimizer.zero_grad()
         # Propagate loss backward
         loss.backward()
 
@@ -193,8 +207,10 @@ for epoch in range(1, epochs+1):
         # Update weights
         optimizer.step()
 
+    # print_loss_total = 0
     # Decrement learnig rate to 1/10th every epoch
-    scheduler.step()
+    if epoch < 4:
+        scheduler.step()
 
     # Print learning rate
     print('Epoch-{0} lr: {1}'.format(epoch, optimizer.param_groups[0]['lr']))
