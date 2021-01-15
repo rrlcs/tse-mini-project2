@@ -13,9 +13,9 @@ from model import device, define_model
 
 
 # Set parameters for training
-epochs = 10
+epochs = 2
 learning_rate = 1e-6
-training_size = 35000
+training_size = 5000
 
 # Define model
 model = define_model()
@@ -118,13 +118,13 @@ loss_list_epoch = []
 for epoch in range(1, epochs+1):
     training_data = pd.DataFrame(training_data).sample(frac=1).to_dict("records")
     loss_list = []  # contains loss for each iteration
-    for i in range(1, training_size+1):
+    for i in range(1, training_size):
 
         # Extract data elements from the training data
-        feature_matrix_for_ast_nodes = training_data[i].get('featureMatrix')
-        num_of_nodes = training_data[i].get('num_of_nodes')
-        edge_list = training_data[i].get('edgeList')
-        rules_used = training_data[i].get('GrammarRulesUsed')
+        feature_matrix_for_ast_nodes = training_data[i-1].get('featureMatrix')
+        num_of_nodes = training_data[i-1].get('num_of_nodes')
+        edge_list = training_data[i-1].get('edgeList')
+        rules_used = training_data[i-1].get('GrammarRulesUsed')
 
         # Get data in correct format
         feature_matrix_for_ast_nodes, edge_list_of_tuples, rules_used = format_data(
@@ -207,7 +207,7 @@ for epoch in range(1, epochs+1):
         # Update weights
         optimizer.step()
 
-    # print_loss_total = 0
+    print_loss_total = 0
     # Decrement learnig rate to 1/10th every epoch
     if epoch < 4:
         scheduler.step()
