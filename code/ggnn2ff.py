@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 import numpy as np
 from sklearn import preprocessing
-from ggnn_encoder import AdjacencyList
+from code.ggnn_encoder import AdjacencyList
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # GGNN2FF: Combining Encoder Decoder

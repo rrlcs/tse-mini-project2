@@ -57,7 +57,7 @@ ast_node_encoding = dict(
 
 
 # Loading Data
-with open("dataset.json", "r") as f:
+with open("data/dataset.json", "r") as f:
     data = json.load(f)
 training_data = data.get('TrainingExamples')[:training_size]
 

@@ -1,6 +1,6 @@
-from ggnn_encoder import GGNN_Encoder
-from ffnn_decoder import FF_Decoder
-from ggnn2ff import GGNN2FF
+from code.ggnn_encoder import GGNN_Encoder
+from code.ffnn_decoder import FF_Decoder
+from code.ggnn2ff import GGNN2FF
 import torch
 import numpy as np
 

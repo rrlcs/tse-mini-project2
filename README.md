@@ -12,7 +12,7 @@ Decoder: ```ffnn_decoder.py```
 ### Steps to run the experiment
 
 1. Clone the repo: ```git clone https://github.com/rrlcs/tse-mini-project2.git```
-2. Extract the dataset: ```gunzip dataset.json.gz```
+2. Extract the dataset: ```gunzip data/dataset.json.gz```
 3. Train the network: ```python train.py```
 4. Evaluate the network: ```python evaluate.py```
 5. Plot the losses: ```python plot.py```
