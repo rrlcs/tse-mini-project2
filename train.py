@@ -7,13 +7,13 @@ import math
 import re
 import numpy as np
 from torch.optim.lr_scheduler import StepLR
-from model import device, define_model
+from code.model import device, define_model
 
 
 # Set parameters for training
-epochs = 2
+epochs = 20
 learning_rate = 1e-5
-training_size = 10000
+training_size = 35000
 
 # Define criterion
 criterion = nn.BCELoss()
@@ -200,8 +200,8 @@ for epoch in range(1, epochs+1):
         print_loss_total = 0
 
     # Decrement learnig rate to 1/10th every epoch
-    if epoch < 4:
-        scheduler.step()
+    # if epoch < 4:
+    #     scheduler.step()
 
     # Print learning rate
     print('Epoch-{0} lr: {1}'.format(epoch, optimizer.param_groups[0]['lr']))

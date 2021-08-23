@@ -4,7 +4,7 @@ import time
 import math
 import torch.nn as nn
 import numpy as np
-from model import define_model, device
+from code.model import define_model, device
 import torch.optim as optim
 from sklearn.metrics import accuracy_score
 
