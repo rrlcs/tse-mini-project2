@@ -81,7 +81,7 @@ start_test_index = 35000
 end_test_index = 44000
 
 # Loading Data
-with open("dataset.json", "r") as f:
+with open("data/dataset.json", "r") as f:
     data = json.load(f)
 test_data = data.get('TrainingExamples')[start_test_index:end_test_index]
 
